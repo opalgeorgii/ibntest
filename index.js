@@ -1,11 +1,15 @@
-// Import the 'natural' package
-const natural = require('natural');
+const natural = require('natural'); // <-- required import
 
-// Example function using natural
+// Example sentiment analysis setup
+const Analyzer = natural.SentimentAnalyzer;
+const stemmer = natural.PorterStemmer;
+const analyzer = new Analyzer("English", stemmer, "afinn");
+
 function analyzeSentiment(text) {
-    const tokenizer = new natural.WordTokenizer();
-    const words = tokenizer.tokenize(text);
-    return words;
+    const score = analyzer.getSentiment(text.split(" "));
+    return score;
 }
 
-module.exports = { analyzeSentiment };
+module.exports = {
+    analyzeSentiment,
+};
