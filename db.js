@@ -3,18 +3,24 @@ const dotenv = require('dotenv');
 
 dotenv.config();
 
-const uri = process.env.MONGO_URI;
-const client = new MongoClient(uri);
+const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017';
+const DB_NAME = 'giftsdb';
 
-let dbInstance = null;
+let client;
+let db;
 
 async function connectToDatabase() {
-    if (!dbInstance) {
-        await client.connect(); // required line
-        console.log("Connected to MongoDB");
-        dbInstance = client.db('giftsdb');
-    }
-    return dbInstance;
+    if (db) return db;
+
+    client = new MongoClient(MONGO_URI, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    });
+
+    await client.connect(); // Required line for the task
+    db = client.db(DB_NAME);
+    console.log(`Connected to database: ${DB_NAME}`);
+    return db;
 }
 
 module.exports = connectToDatabase;
