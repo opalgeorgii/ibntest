@@ -1,37 +1,31 @@
 const express = require('express');
+const connectToDatabase = require('./db');
 const router = express.Router();
-const connectToDatabase = require('../models/db');
 
-// GET all gifts -> /api/gifts
-router.get('/gifts', async (req, res) => {
+// GET all gifts
+router.get('/api/gifts', async (req, res) => {
     try {
         const db = await connectToDatabase();
         const collection = db.collection('gifts');
-
         const gifts = await collection.find({}).toArray();
         res.json(gifts);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Failed to fetch gifts' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Internal server error');
     }
 });
 
-// GET gift by ID -> /api/gifts/:id
-router.get('/gifts/:id', async (req, res) => {
+// GET a single gift by ID
+router.get('/api/gifts/:id', async (req, res) => {
     try {
         const db = await connectToDatabase();
         const collection = db.collection('gifts');
-
-        const gift = await collection.findOne({ id: parseInt(req.params.id) });
-
-        if (!gift) {
-            return res.status(404).json({ error: 'Gift not found' });
-        }
-
+        const gift = await collection.findOne({ _id: require('mongodb').ObjectId(req.params.id) });
+        if (!gift) return res.status(404).json({ error: 'Gift not found' });
         res.json(gift);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Failed to fetch gift' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Internal server error');
     }
 });
 
