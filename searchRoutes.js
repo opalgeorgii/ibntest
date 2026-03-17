@@ -1,43 +1,28 @@
 const express = require('express');
+const connectToDatabase = require('./db');
 const router = express.Router();
-const connectToDatabase = require('../models/db');
 
-// SEARCH endpoint -> /api/search
-router.get('/search', async (req, res) => {
+// Search gifts with optional filters
+router.get('/api/search', async (req, res) => {
     try {
         const db = await connectToDatabase();
         const collection = db.collection('gifts');
 
-        const { name, category, condition, age_years } = req.query;
+        // Build query based on filters
+        const query = {};
+        const { name, category, condition, minAge, maxAge } = req.query;
 
-        let query = {};
-
-        // Filter by name
-        if (name) {
-            query.name = { $regex: name, $options: 'i' };
-        }
-
-        // ✅ Filter by category (IMPORTANT for this question)
-        if (category) {
-            query.category = category;
-        }
-
-        // Filter by condition
-        if (condition) {
-            query.condition = condition;
-        }
-
-        // Filter by age
-        if (age_years) {
-            query.age_years = { $lte: parseInt(age_years) };
-        }
+        if (name) query.name = { $regex: name, $options: 'i' };
+        if (category) query.category = category;
+        if (condition) query.condition = condition;
+        if (minAge) query.age = { ...query.age, $gte: parseInt(minAge) };
+        if (maxAge) query.age = { ...query.age, $lte: parseInt(maxAge) };
 
         const results = await collection.find(query).toArray();
         res.json(results);
-
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Search failed' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Internal server error');
     }
 });
 
